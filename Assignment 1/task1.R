@@ -1,6 +1,8 @@
 library(paran)
 library(car)
 library(ggplot2)
+library(ggrepel)
+library(tidyverse)
 
 # loading the provided data set
 load("Data/life.Rdata")
@@ -95,8 +97,8 @@ theme_biplot <- theme_classic() +
       fill = NA,
       linewidth = 0.8
     ),
-    text = element_text(family = "serif", size = 14),
-    plot.title = element_text(face = "bold", size = 16),
+    text = element_text(family = "serif", size = 12),
+    plot.title = element_text(face = "bold", size = 14),
     axis.line = element_line(colour = "black"),
     axis.ticks = element_line(colour = "black"),
     axis.ticks.x.top = element_line(colour = "red"),
@@ -116,11 +118,16 @@ ggplot() +
     name = "PC2 (26.48%)",
     sec.axis = dup_axis( ~ . / 2, name = NULL)
   ) +
-  geom_text(
+  geom_point(
+    data = scores,
+    aes(x = scores1, y = scores2),
+    size = 1.5
+  ) + 
+  geom_text_repel(
     data = scores,
     aes(x = scores1, y = scores2, label = country),
     color = "black",
-    size = 1
+    size = 2
   ) +
   geom_segment(
     data = loadings,
@@ -130,19 +137,19 @@ ggplot() +
       xend = load1,
       yend = load2
     ),
-    arrow = arrow(length = unit(0.25, "cm")),
+    arrow = arrow(length = unit(0.2, "cm")),
     color = "red",
-    linewidth = 0.8
+    linewidth = 0.5
   ) +
-  geom_text(
+  geom_text_repel(
     data = loadings,
     aes(
-      x = load1 * 1.1,
-      y = load2 * 1.1,
+      x = load1,
+      y = load2,
       label = variable
     ),
     color = "red",
-    size = 3.5
+    size = 2.5
   ) +
   geom_hline(
     yintercept = 0,
@@ -160,3 +167,5 @@ ggplot() +
   ) +
   ggtitle("Standardized scores on the first two principal components (66.48%)") +
   theme_biplot
+
+  
