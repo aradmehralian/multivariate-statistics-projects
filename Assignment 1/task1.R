@@ -75,15 +75,17 @@ biplot(
 abline(h = 0)
 abline(v = 0)
 
+# michele's part
+
 loadings <- tibble(
   variable = colnames(life),
-  load1 = life.PCA$rotation[, 1] * 2,
-  load2 = life.PCA$rotation[, 2] * 2
+  load1 = life_pca$rotation[, 1] * 2,
+  load2 = life_pca$rotation[, 2] * 2
 )
 scores <- tibble(
   country = rownames(life),
-  scores1 = life.PCA$x[, 1] / life.PCA$sdev[1],
-  scores2 = life.PCA$x[, 2] / life.PCA$sdev[2]
+  scores1 = life_pca$x[, 1] / life_pca$sdev[1],
+  scores2 = life_pca$x[, 2] / life_pca$sdev[2]
 )
 
 theme_biplot <- theme_classic() +
@@ -118,7 +120,7 @@ ggplot() +
     data = scores,
     aes(x = scores1, y = scores2, label = country),
     color = "black",
-    size = 3
+    size = 1
   ) +
   geom_segment(
     data = loadings,
