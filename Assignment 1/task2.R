@@ -126,10 +126,7 @@ FSF ~~ 1*FSF
 SFJ ~~ 1*SFJ
 SDJ ~~ 1*SDJ
 HEALTH ~~ 1*HEALTH
-FS ~~ FSF
-FS ~~ SFJ
-FS ~~ SDJ
-FS ~~ HEALTH
+
 FSF ~~ SFJ
 FSF ~~ SDJ
 FSF ~~ HEALTH
@@ -162,10 +159,7 @@ FSF ~~ 1*FSF
 SFJ ~~ 1*SFJ
 SDJ ~~ 1*SDJ
 HEALTH ~~ 1*HEALTH
-FS ~~ FSF
-FS ~~ SFJ
-FS ~~ SDJ
-FS ~~ HEALTH
+
 FSF ~~ SFJ
 FSF ~~ SDJ
 FSF ~~ HEALTH
@@ -214,7 +208,11 @@ metric_invariance_equal <- sem(model_structural_constrained, data=df_centered,
 summary(metric_invariance_equal)
 
 # comparing fit measurements
-fitmeasures(config_invariance, c("chisq","df","cfi","tli","rmsea","srmr"))
-fitmeasures(config_invariance_equal, c("chisq","df","cfi","tli","rmsea","srmr"))
-fitmeasures(metric_invariance, c("chisq","df","cfi","tli","rmsea","srmr"))
-fitmeasures(metric_invariance_equal, c("chisq","df","cfi","tli","rmsea","srmr"))
+fitmeasures(config_invariance, c("chisq","df","cfi","tli","rmsea","srmr",
+                                 "aic", "bic"))
+fitmeasures(config_invariance_equal, c("chisq","df","cfi","tli","rmsea","srmr",
+                                       "aic", "bic"))
+fitmeasures(metric_invariance, c("chisq","df","cfi","tli","rmsea","srmr",
+                                 "aic", "bic"))
+fitmeasures(metric_invariance_equal, c("chisq","df","cfi","tli","rmsea","srmr",
+                                       "aic", "bic"))
