@@ -9,7 +9,18 @@ load("Data/life.Rdata")
 sum(is.na(life)) # checking for missing values
 
 # exploring the data set
-boxplot(life, ylim = c(1, 4)) # possible values range from 1-4
+life_long <- life %>% pivot_longer(cols = everything(),
+                                   names_to = "variable",
+                                   values_to = "scores")
+ggplot(life_long, aes(x = variable, y = scores, fill = variable)) + 
+  geom_boxplot() + 
+  theme_classic() + 
+  labs(x = "", y = "", 
+       title = "Items Scores on Likert Scale (1 to 4)") + 
+  theme(legend.position = "none") + 
+  geom_abline(intercept = 4, slope = 0, lty = 2) +
+  geom_abline(intercept = 1, slope = 0, lty = 2) + 
+  scale_y_continuous(breaks = 1:4, limits = c(1, 4))
 summary(life)
 
 ## part a
@@ -29,8 +40,8 @@ round(standard_scores, 3)
 # scree plot to determine number of components
 screeplot(life_pca, type = "lines")
 
-round(lifePCA$sdev^2, 3) # eigenvalues
-round((lifePCA$sdev^2) / ncol(lifestand), 3) # proportion explained per component
+round(life_pca$sdev^2, 3) # eigenvalues
+round((life_pca$sdev^2) / ncol(life_standard), 3) # proportion explained per component
 
 # Horn's Procedure
 # comparing against the mean
@@ -63,21 +74,9 @@ round(loadings[, 1:2], 3)
 
 ## part b
 
-par(pty = "s", cex = 0.65)
+life_pca$rotation[, 2] <- life_pca$rotation[, 2] * -1
+life_pca$x[, 2] <- life_pca$x[, 2] * -1
 
-biplot(
-  life_pca,
-  pc.biplot = TRUE,
-  xlab = "PC1",
-  ylab = "PC2",
-  xlim = c(-3, 3),
-  ylim = c(-3, 3)
-)
-
-abline(h = 0)
-abline(v = 0)
-
-# michele's part
 
 loadings <- tibble(
   variable = colnames(life),
