@@ -146,7 +146,7 @@ FS_save_money ~~ FSF_save_money
 FS_afford_extras ~~ FSF_afford_extras
 FS_save_money ~~ FS_afford_extras
 
-FS ~~ FSF + SFJ + SDJ + HEALTH
+FS ~ FSF + SFJ + SDJ + HEALTH
 '
 
 model_structural_constrained <- '
@@ -182,7 +182,7 @@ FS_save_money ~~ FSF_save_money
 FS_afford_extras ~~ FSF_afford_extras
 FS_save_money ~~ FS_afford_extras
 
-FS ~~ a1*FSF + a2*SFJ + a3*SDJ + a4*HEALTH
+FS ~ a1*FSF + a2*SFJ + a3*SDJ + a4*HEALTH
 '
 
 # d.1
