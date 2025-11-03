@@ -63,7 +63,23 @@ SDJ ~~ HEALTH
 # fitting the data and examining the result
 cfa_fit_1 <- cfa(model=cfa_model_1, sample.cov=cov_df, sample.nobs=sample_size)
 summary(cfa_fit_1, fit.measures=T)
-# standardizedsolution(cfa_fit_1)
+
+# capturing the standard loadings and computing the error variances
+std_loadings <- inspect(cfa_fit_1, "std")$lambda  
+err_var <- 1 - std_loadings^2                  
+
+# function for computing composite reliability
+comp_rel <- function(loads, errs) 
+{
+  (sum(loads)^2) / ((sum(loads)^2) + sum(errs))
+}
+
+# applying the composite reliability function to the standard loading and errors
+composite_results <-  sapply(1:ncol(std_loadings), function(i) {
+  l <- std_loadings[, i][std_loadings[, i] != 0]  
+  e <- err_var[, i][std_loadings[, i] != 0]
+  comp_rel(l, e)
+})
 
 ## part c
 

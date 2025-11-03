@@ -12,6 +12,8 @@ sum(is.na(life)) # checking for missing values
 life_long <- life %>% pivot_longer(cols = everything(),
                                    names_to = "variable",
                                    values_to = "scores")
+
+# box plot to see the distribution of the data
 ggplot(life_long, aes(x = variable, y = scores, fill = variable)) + 
   geom_boxplot() + 
   theme_classic() + 
@@ -21,6 +23,7 @@ ggplot(life_long, aes(x = variable, y = scores, fill = variable)) +
   geom_abline(intercept = 4, slope = 0, lty = 2) +
   geom_abline(intercept = 1, slope = 0, lty = 2) + 
   scale_y_continuous(breaks = 1:4, limits = c(1, 4))
+
 summary(life)
 
 ## part a
@@ -74,21 +77,26 @@ round(loadings[, 1:2], 3)
 
 ## part b
 
+# flipping the loadings of the second component for better interpretation
 life_pca$rotation[, 2] <- life_pca$rotation[, 2] * -1
 life_pca$x[, 2] <- life_pca$x[, 2] * -1
 
 
+# extracting the factor loadings
 loadings <- tibble(
   variable = colnames(life),
   load1 = life_pca$rotation[, 1] * 2,
   load2 = life_pca$rotation[, 2] * 2
 )
+
+# extracting factor scores
 scores <- tibble(
   country = rownames(life),
   scores1 = life_pca$x[, 1] / life_pca$sdev[1],
   scores2 = life_pca$x[, 2] / life_pca$sdev[2]
 )
 
+# the bi-plot
 theme_biplot <- theme_classic() +
   theme(
     panel.border = element_rect(
