@@ -11,24 +11,29 @@ print(number_columns)
 ## part a
 
 # scaling data and dropping the "country" column
-df_standard <- as.data.frame(scale(fsdata[, 2:number_columns],
-                                   center=T, scale=T))
+df_standard <- as.data.frame(scale(fsdata[, 2:number_columns], center =
+                                     T, scale = T))
 
 
 # calculating the correlation matrix
 cor_df <- cor(df_standard)
 
 # conducting EFA
-efa_df <- fa(cor_df, fm="mle", nfactors=5, rotate="oblimin",
-             scores="regression")
+efa_df <- fa(
+  cor_df,
+  fm = "mle",
+  nfactors = 5,
+  rotate = "oblimin",
+  scores = "regression"
+)
 print(efa_df)
 
 
 ## part b
 
 # centering data
-df_centered <- as.data.frame(scale(fsdata[, 2:number_columns],
-                                   center=T, scale=F))
+df_centered <- as.data.frame(scale(fsdata[, 2:number_columns], center =
+                                     T, scale = F))
 
 # calculating the covariance matrix
 cov_df <- cov(df_centered)
@@ -61,25 +66,29 @@ SDJ ~~ HEALTH
 '
 
 # fitting the data and examining the result
-cfa_fit_1 <- cfa(model=cfa_model_1, sample.cov=cov_df, sample.nobs=sample_size)
-summary(cfa_fit_1, fit.measures=T)
+cfa_fit_1 <- cfa(model = cfa_model_1,
+                 sample.cov = cov_df,
+                 sample.nobs = sample_size)
+summary(cfa_fit_1, fit.measures = T)
 
 # capturing the standard loadings and computing the error variances
-std_loadings <- inspect(cfa_fit_1, "std")$lambda  
-err_var <- 1 - std_loadings^2                  
+std_loadings <- inspect(cfa_fit_1, "std")$lambda
+err_var <- 1 - std_loadings^2
 
 # function for computing composite reliability
-comp_rel <- function(loads, errs) 
+comp_rel <- function(loads, errs)
 {
   (sum(loads)^2) / ((sum(loads)^2) + sum(errs))
 }
 
-# applying the composite reliability function to the standard loading and errors
+# applying the composite reliability function to the 
+# standardised loadings and errors
 composite_results <-  sapply(1:ncol(std_loadings), function(i) {
-  l <- std_loadings[, i][std_loadings[, i] != 0]  
+  l <- std_loadings[, i][std_loadings[, i] != 0]
   e <- err_var[, i][std_loadings[, i] != 0]
   comp_rel(l, e)
 })
+composite_results
 
 ## part c
 
@@ -87,8 +96,8 @@ composite_results <-  sapply(1:ncol(std_loadings), function(i) {
 mi_fit_1 <- modificationindices(cfa_fit_1)
 
 # sorting based on largest drop in Chi score
-mi_order <- order(mi_fit_1$mi, decreasing=T)
-mi_fit1_sorted <- mi_fit_1[mi_order,]
+mi_order <- order(mi_fit_1$mi, decreasing = T)
+mi_fit1_sorted <- mi_fit_1[mi_order, ]
 
 # constraining 8 parameters to improve performance
 cfa_model_2 <- '
@@ -123,8 +132,10 @@ FS_afford_extras ~~ FSF_afford_extras
 FS_save_money ~~ FS_afford_extras
 '
 
-cfa_fit_2 <- cfa(model=cfa_model_2, sample.cov=cov_df, sample.nobs=sample_size)
-summary(cfa_fit_2, fit.measures=T)
+cfa_fit_2 <- cfa(model = cfa_model_2,
+                 sample.cov = cov_df,
+                 sample.nobs = sample_size)
+summary(cfa_fit_2, fit.measures = T)
 
 ## part d
 df_centered$country <- fsdata$country
@@ -196,39 +207,50 @@ FS ~ a1*FSF + a2*SFJ + a3*SDJ + a4*HEALTH
 '
 
 # d.1
-config_invariance <- sem(model_structural_free, data=df_centered,
-                         group="country")
+config_invariance <- sem(model_structural_free, data = df_centered, group =
+                           "country")
 
-summary(config_invariance, fit.measures=T)
+summary(config_invariance, fit.measures = T)
 
 
 # d.2
-config_invariance_equal <- sem(model_structural_constrained, data=df_centered,
-                               group="country", group.equal="regressions")
+config_invariance_equal <- sem(
+  model_structural_constrained,
+  data = df_centered,
+  group = "country",
+  group.equal = "regressions"
+)
 
-summary(config_invariance_equal, fit.measures=T)
+summary(config_invariance_equal, fit.measures = T)
 
 
 # d.3
-metric_invariance <- sem(model_structural_free, data=df_centered, 
-            group="country", group.equal="loadings")
+metric_invariance <- sem(
+  model_structural_free,
+  data = df_centered,
+  group = "country",
+  group.equal = "loadings"
+)
 
 summary(metric_invariance)
 
 
 # d.4
-metric_invariance_equal <- sem(model_structural_constrained, data=df_centered, 
-                               group="country",
-                               group.equal=c("loadings", "regressions"))
+metric_invariance_equal <- sem(
+  model_structural_constrained,
+  data = df_centered,
+  group = "country",
+  group.equal = c("loadings", "regressions")
+)
 
 summary(metric_invariance_equal)
 
 # comparing fit measurements
-fitmeasures(config_invariance, c("chisq","df","cfi","tli","rmsea","srmr",
-                                 "aic", "bic"))
-fitmeasures(config_invariance_equal, c("chisq","df","cfi","tli","rmsea","srmr",
-                                       "aic", "bic"))
-fitmeasures(metric_invariance, c("chisq","df","cfi","tli","rmsea","srmr",
-                                 "aic", "bic"))
-fitmeasures(metric_invariance_equal, c("chisq","df","cfi","tli","rmsea","srmr",
-                                       "aic", "bic"))
+fitmeasures(config_invariance,
+            c("chisq", "df", "cfi", "tli", "rmsea", "srmr", "aic", "bic"))
+fitmeasures(config_invariance_equal,
+            c("chisq", "df", "cfi", "tli", "rmsea", "srmr", "aic", "bic"))
+fitmeasures(metric_invariance,
+            c("chisq", "df", "cfi", "tli", "rmsea", "srmr", "aic", "bic"))
+fitmeasures(metric_invariance_equal,
+            c("chisq", "df", "cfi", "tli", "rmsea", "srmr", "aic", "bic"))
