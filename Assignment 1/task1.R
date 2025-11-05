@@ -41,7 +41,8 @@ round(standard_scores, 3)
 
 
 # scree plot to determine number of components
-screeplot(life_pca, type = "lines")
+screeplot(life_pca, type = "lines", main = "Scree plot", 
+          xlim = c(0.75, 6.25), ylim = c(0, 3))
 
 round(life_pca$sdev^2, 3) # eigenvalues
 round((life_pca$sdev^2) / ncol(life_standard), 3) # proportion explained per component
