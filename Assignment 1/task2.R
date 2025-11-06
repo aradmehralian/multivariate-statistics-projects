@@ -5,8 +5,8 @@ library(lavaan)
 load("Data/fsdata.Rdata")
 sum(is.na(fsdata)) # checking for missing values
 
-number_columns <- ncol(fsdata)
-print(number_columns)
+nrows <- ncol(fsdata)
+nrows
 
 ## part a
 
@@ -20,13 +20,25 @@ cor_df <- cor(df_standard)
 
 # conducting EFA
 efa_df <- fa(
-  cor_df,
-  fm = "mle",
+  df_standard,
+  fm = "ml",
   nfactors = 5,
   rotate = "oblimin",
   scores = "regression"
 )
-print(efa_df)
+efa_df
+efa_df$loadings
+data.frame(communality = round(efa_df$communalities, 3),
+           uniquenesses = round(efa_df$uniquenesses, 3))
+
+
+# reproducibility
+rep_cor <- efa_df$model
+change <- max(abs(cor_df - rep_cor)) 
+rms_res <- sqrt(mean((cor_df - rep_cor)[lower.tri(cor_df)]^2)) 
+c(change, rms_res)
+efa_df$STATISTIC
+efa_df$PVAL
 
 
 ## part b
@@ -38,7 +50,7 @@ df_centered <- as.data.frame(scale(fsdata[, 2:number_columns], center =
 # calculating the covariance matrix
 cov_df <- cov(df_centered)
 sample_size <- nrow(df_centered)
-print(sample_size)
+sample_size
 
 # model parameters
 cfa_model_1 <- '
@@ -69,11 +81,20 @@ SDJ ~~ HEALTH
 cfa_fit_1 <- cfa(model = cfa_model_1,
                  sample.cov = cov_df,
                  sample.nobs = sample_size)
-summary(cfa_fit_1, fit.measures = T)
+summary(cfa_fit_1)
+fitmeasures(cfa_fit_1, c("chisq", "df", "pvalue", "cfi", "tli", "rmsea", "SRMR"))
 
 # capturing the standard loadings and computing the error variances
 std_loadings <- inspect(cfa_fit_1, "std")$lambda
 err_var <- 1 - std_loadings^2
+
+# convergence
+ave <- function(load){
+  load <- load[load != 0] 
+  sum(load^2) / length(load)
+}
+AVE_res <- apply(std_loadings, 2, ave)  
+round(AVE_res, 3)
 
 # function for computing composite reliability
 comp_rel <- function(loads, errs)
@@ -98,6 +119,7 @@ mi_fit_1 <- modificationindices(cfa_fit_1)
 # sorting based on largest drop in Chi score
 mi_order <- order(mi_fit_1$mi, decreasing = T)
 mi_fit1_sorted <- mi_fit_1[mi_order, ]
+mi_fit1_sorted
 
 # constraining 8 parameters to improve performance
 cfa_model_2 <- '
@@ -135,7 +157,8 @@ FS_save_money ~~ FS_afford_extras
 cfa_fit_2 <- cfa(model = cfa_model_2,
                  sample.cov = cov_df,
                  sample.nobs = sample_size)
-summary(cfa_fit_2, fit.measures = T)
+summary(cfa_fit_2)
+fitmeasures(cfa_fit_2, c("chisq", "df", "pvalue", "cfi", "tli", "rmsea", "SRMR"))
 
 ## part d
 df_centered$country <- fsdata$country
@@ -210,7 +233,7 @@ FS ~ a1*FSF + a2*SFJ + a3*SDJ + a4*HEALTH
 config_invariance <- sem(model_structural_free, data = df_centered, group =
                            "country")
 
-summary(config_invariance, fit.measures = T)
+summary(config_invariance)
 
 
 # d.2
@@ -221,7 +244,7 @@ config_invariance_equal <- sem(
   group.equal = "regressions"
 )
 
-summary(config_invariance_equal, fit.measures = T)
+summary(config_invariance_equal)
 
 
 # d.3
