@@ -106,7 +106,7 @@ comp_rel <- function(loads, errs)
 }
 
 # applying the composite reliability function to the 
-# standardised loadings and errors
+# standardized loadings and errors
 composite_results <-  sapply(1:ncol(std_loadings), function(i) {
   l <- std_loadings[, i][std_loadings[, i] != 0]
   e <- err_var[, i][std_loadings[, i] != 0]
@@ -229,7 +229,7 @@ FS_save_money ~~ FSF_save_money
 FS_afford_extras ~~ FSF_afford_extras
 FS_save_money ~~ FS_afford_extras
 
-FS ~ a1*FSF + a2*SFJ + a3*SDJ + a4*HEALTH
+FS ~ b1*FSF + b2*SFJ + b3*SDJ + b4*HEALTH
 '
 
 # d.1
@@ -280,3 +280,15 @@ fitmeasures(metric_invariance,
             c("chisq", "df", "cfi", "tli", "rmsea", "srmr", "aic", "bic"))
 fitmeasures(metric_invariance_equal,
             c("chisq", "df", "cfi", "tli", "rmsea", "srmr", "aic", "bic"))
+
+# Note: second model is chosen (config_invariance_equal)
+# chosen model intercepts
+model_intercepts <- parameterEstimates(config_invariance_equal)
+subset(model_intercepts, op == "~1") # filtering for intercepts
+
+# regression coefficients
+standard_solution <- standardizedSolution(config_invariance_equal)
+
+# filter for regression coefficients
+standard_regressions <- subset(standard_solution, op == "~")
+standard_regressions
