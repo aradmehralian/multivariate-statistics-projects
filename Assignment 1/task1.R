@@ -81,6 +81,7 @@ life_pca$x[, 2] <- life_pca$x[, 2] * -1
 
 
 # extracting the factor loadings
+# rotation vectors are multiplied by two only for visualization purposes
 loadings <- tibble(
   variable = colnames(life),
   load1 = life_pca$rotation[, 1] * 2,
