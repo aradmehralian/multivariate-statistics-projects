@@ -39,13 +39,12 @@ print(life_pca)
 standard_scores <- life_standard %*% life_pca$rotation %*% diag(1 / life_pca$sdev)
 round(standard_scores, 3)
 
+# computing eigenvalues and explained variance
+summary(life_pca)
 
 # scree plot to determine number of components
 screeplot(life_pca, type = "lines", main = "Scree plot", 
           xlim = c(0.75, 6.25), ylim = c(0, 3))
-
-round(life_pca$sdev^2, 3) # eigenvalues
-round((life_pca$sdev^2) / ncol(life_standard), 3) # proportion explained per component
 
 # Horn's Procedure
 # comparing against the mean
@@ -72,9 +71,7 @@ paran(
 
 # computing components loading
 loadings <- life_pca$rotation %*% diag(life_pca$sdev)
-
-# rounding the first two components
-round(loadings[, 1:2], 3)
+round(loadings, 3)
 
 ## part b
 

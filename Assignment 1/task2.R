@@ -5,13 +5,15 @@ library(lavaan)
 load("Data/fsdata.Rdata")
 sum(is.na(fsdata)) # checking for missing values
 
-nrows <- ncol(fsdata)
-nrows
+nrow <- nrow(fsdata)
+nrow
+ncol <- ncol(fsdata)
+ncol
 
 ## part a
 
 # scaling data and dropping the "country" column
-df_standard <- as.data.frame(scale(fsdata[, 2:number_columns], center =
+df_standard <- as.data.frame(scale(fsdata[, 2:ncol], center =
                                      T, scale = T))
 
 
@@ -20,11 +22,12 @@ cor_df <- cor(df_standard)
 
 # conducting EFA
 efa_df <- fa(
-  df_standard,
+  r = cor_df,
   fm = "ml",
   nfactors = 5,
   rotate = "oblimin",
-  scores = "regression"
+  scores = "regression",
+  n.obs = nrow
 )
 efa_df
 efa_df$loadings
@@ -44,7 +47,7 @@ efa_df$PVAL
 ## part b
 
 # centering data
-df_centered <- as.data.frame(scale(fsdata[, 2:number_columns], center =
+df_centered <- as.data.frame(scale(fsdata[, 2:ncol], center =
                                      T, scale = F))
 
 # calculating the covariance matrix
@@ -81,8 +84,8 @@ SDJ ~~ HEALTH
 cfa_fit_1 <- cfa(model = cfa_model_1,
                  sample.cov = cov_df,
                  sample.nobs = sample_size)
-summary(cfa_fit_1)
 fitmeasures(cfa_fit_1, c("chisq", "df", "pvalue", "cfi", "tli", "rmsea", "SRMR"))
+summary(cfa_fit_1)$pe[, c(1:3, 5)]
 
 # capturing the standard loadings and computing the error variances
 std_loadings <- inspect(cfa_fit_1, "std")$lambda
