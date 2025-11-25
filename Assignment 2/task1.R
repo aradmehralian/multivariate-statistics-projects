@@ -51,9 +51,7 @@ summary(wilk_s2_pc, test = "Wilks")
 # hence, LDA and QDA are meaningful due to real separation in data.
 
 # LDA
-# -----------------------
-# Scenario 1: LDA
-# -----------------------
+# S1: LDA
 lda_s1 <- lda(train.pc.s1, grouping = train.target.s1)
 print(lda_s1)
 
@@ -158,7 +156,8 @@ for (i in seq_along(k_vals)) {
 
 # Identify best k based on minimum test error
 best_k_val_s1 <- k_vals[which.min(test_err)]
-cat("Best k ", best_k_val_s1, "Test Error:", min(test_err), "\n")
+cat("Best k ", best_k_val_s1, "Test Error:", min(test_err), "\n") 
+#can't pick 1 -- pick from the graph instead
 cat("Train Error at best k:", train_err[which.min(test_err)], "\n")
 
 plot(k_vals, train_err, type="b", col="blue", pch=19, ylim=c(0, max(train_err, test_err)),
@@ -168,9 +167,9 @@ legend("topright", legend=c("Train","Test"), col=c("blue","red"), pch=10)
 
 # Train and test predictions using best k
 train_pred_s1 <- knn(train = train.pc.s1, test = train.pc.s1,
-                     cl = train.target.s1, k = 4)
+                     cl = train.target.s1, k = 3)
 test_pred_s1 <- knn(train = train.pc.s1, test = test.pc.s1,
-                    cl = train.target.s1, k = 4)
+                    cl = train.target.s1, k = 3)
 
 knn_trn_err_s1 <- mean(train_pred_s1 != train.target.s1)
 knn_tst_err_s1  <- mean(test_pred_s1 != test.target)
@@ -220,7 +219,8 @@ knn_tst_err_s2  <- mean(test_pred_s2 != test.target)
 cat("S2 - Train Error:", knn_trn_err_s2, "\n")
 cat("S2 - Test Error:", knn_tst_err_s2, "\n")
 
-#With larger training set, KNN has 0 training error and test error of 7.6% indicating over-fitting
+#With larger training set, KNN has 4% training error and test error of 7.6% indicating over-fitting
+# with k=1, train error is 0 but that is a highly unstable model
 #With smaller training set, KNN has 6.4% training error and 12.7% test error indicating worse fit
 #KNN needs larger datasets 
 
@@ -242,10 +242,10 @@ tst_pred_s2 <- predict(mul_s2, newdata = as.data.frame(test.pc.s2))
 mlr_trn_err_s2 <- mean(trn_pred_s2 != train.target.s2)
 mlr_tst_err_s2 <- mean(tst_pred_s2 != test.target)
 
-#training error around 17% and test error around 18.8% - worse than LDA (11%) and QDA (5.8%).
+#training error around 8% and test error around 9.2% - worse than QDA (5.8%).
 #maybe the relationship btw principal components and labels is non-linear,and MLR is linear in the log-odds.
 
-#with a smaller training set, training error decreases to around 12% but test error remains at 18.4%
+#with a smaller training set, training error decreases to around 5% but test error increases to 12%
 #probable under-fitting making the model too simple for the complex decision boundaries
 
 #similar train and test errors show low over-fitting,but the low scores indicate high bias 
@@ -299,12 +299,6 @@ tst_prd_sq_s2 <- predict(mul_sq_s2, newdata = tst_pc_sq_s2)
 mlr_sq_trn_err_s2 <- mean(trn_prd_sq_s2 != train.target.s2)
 mlr_sq_tst_err_s2 <- mean(tst_prd_sq_s2 != test.target)
 
-cat("S1 (PC + PC^2) Train Error:", mlr_sq_trn_err_s1, "\n")
-cat("S1 (PC + PC^2) Test Error:", mlr_sq_tst_err_s1, "\n")
-cat("S2 (PC + PC^2) - Train Error:", mlr_sq_trn_err_s2, "\n")
-cat("S2 (PC + PC^2) - Test Error:", mlr_sq_tst_err_s2, "\n")
-
-
 para_s1 <- coef(mul_sq_s1)   #K-1 row, p+1 col
 para_s2 <- coef(mul_sq_s2)
 n_sam_s1 <- length(train.target.s1)
@@ -320,14 +314,296 @@ cat("S2: K-1 classes =", nrow(para_s2),
     " Parameters =", length(para_s2),
     " Training samples =", n_sam_s2, "\n")
 
+cat("S1  Train Error:", mlr_trn_err_s1, "\n")
+cat("S1  Test Error:", mlr_tst_err_s1, "\n")
+cat("S2  Train Error:", mlr_trn_err_s2, "\n")
+cat("S2  Test Error:", mlr_tst_err_s2, "\n")
 
+cat("S1 (PC + PC^2) Train Error:", mlr_sq_trn_err_s1, "\n")
+cat("S1 (PC + PC^2) Test Error:", mlr_sq_tst_err_s1, "\n")
+cat("S2 (PC + PC^2) - Train Error:", mlr_sq_trn_err_s2, "\n")
+cat("S2 (PC + PC^2) - Test Error:", mlr_sq_tst_err_s2, "\n")
 
 #MLR on PCs alone had:
-#  S1 → Train 17%, Test 18.8%   vs 23.8% and 24.3% Squared
-#  S2 → Train 12.4%, Test 18.4% vs 22.5% and 27.3% Squared
+#  S1 → Train 8%, Test 9%   vs 5% and 8% Squared
+#  S2 → Train 5%, Test 12% vs 0% and 16% Squared
 
-#Adding squared PCs increased both training and test errors significantly maybe because of overparameterization?
+#Adding squared PCs increases test errors for smaller sample maybe because of over-parameterization?
 #S1-417 variables for only 9600 samples
 #S2-393 variables for 1600 samples 
-#slight overfitting and poor generalization due to too many correlated predictors/ unstable 
+#slight over-fitting and poor generalization due to too many correlated predictors/ unstable 
 #smaller training set suffers more
+---------------------------------------------------------------------------------------------------------
+#XGB
+library(xgboost)
+
+#labels to 0,1,2,3 
+y_train_s1 <- as.numeric(train.target.s1) - 1
+y_train_s2 <- as.numeric(train.target.s2) - 1
+y_test     <- as.numeric(test.target) - 1
+
+# S1
+#convert to DMat for XGB
+dtrain_s1 <- xgb.DMatrix(data = as.matrix(train.pc.s1), label = y_train_s1)
+dtest_s1  <- xgb.DMatrix(data = as.matrix(test.pc.s1),  label = y_test)
+
+#choose optimum number of rounds to train
+set.seed(1000)
+cv_s1 <- xgb.cv(
+  data = dtrain_s1,
+  nrounds = 500,
+  nfold = 5,
+  objective = "multi:softmax",
+  num_class = length(unique(y_train_s1)),
+  max_depth = 10,
+  eta = 0.1,
+  subsample = 1,
+  colsample_bytree = 0.8,
+  verbose = 0,
+  early_stopping_rounds = 20
+)
+
+best_nrounds_s1 <- cv_s1$best_iteration
+
+# Train final model
+xgb_s1 <- xgb.train(
+  data = dtrain_s1,
+  nrounds = best_nrounds_s1,
+  objective = "multi:softmax",
+  num_class = length(unique(y_train_s1)),
+  max_depth = 10,
+  eta = 0.1,
+  subsample = 1,
+  colsample_bytree = 0.8,
+  verbose = 0
+)
+
+# Predictions
+pred_train_s1 <- predict(xgb_s1, dtrain_s1)
+pred_test_s1  <- predict(xgb_s1, dtest_s1)
+
+# Error rates
+xgbun_trn_err_s1 <- mean(pred_train_s1 != y_train_s1)
+xgbun_tst_err_s1  <- mean(pred_test_s1 != y_test)
+
+cat("S1 - Train Error:", xgbun_trn_err_s1, "\n")
+cat("S1 - Test Error:",  xgbun_tst_err_s1,  "\n")
+
+# S2
+
+dtrain_s2 <- xgb.DMatrix(data = as.matrix(train.pc.s2), label = y_train_s2)
+dtest_s2  <- xgb.DMatrix(data = as.matrix(test.pc.s2),  label = y_test)
+
+# Cross-validation
+set.seed(1000)
+cv_s2 <- xgb.cv(
+  data = dtrain_s2,
+  nrounds = 500,
+  nfold = 5,
+  objective = "multi:softmax",
+  num_class = 4,
+  max_depth = 10,
+  eta = 0.1,
+  subsample = 1,
+  colsample_bytree = 0.8,
+  verbose = 0,
+  early_stopping_rounds = 20
+)
+
+best_nrounds_s2 <- cv_s2$best_iteration
+
+# Final model
+xgb_s2 <- xgb.train(
+  data = dtrain_s2,
+  nrounds = best_nrounds_s2,
+  objective = "multi:softmax",
+  num_class = length(unique(y_train_s2)),
+  max_depth = 10,
+  eta = 0.1,
+  subsample = 1,
+  colsample_bytree = 0.8,
+  verbose = 0
+)
+
+# Predictions
+pred_train_s2 <- predict(xgb_s2, dtrain_s2)
+pred_test_s2  <- predict(xgb_s2, dtest_s2)
+
+# Error rates
+xgbun_trn_err_s2 <- mean(pred_train_s2 != y_train_s2)
+xgbun_tst_err_s2  <- mean(pred_test_s2 != y_test)
+
+cat("S2 - Train Error:", xgbun_trn_err_s2, "\n")
+cat("S2 - Test Error:",  xgbun_tst_err_s2,  "\n")
+
+#Training error 0 % - capture complex patterns
+#however, high test error 6.5% - over-fitting, common for boosting
+#better than LDA and comparable to KNN but worse than QDA(5.8%) needs tuning
+#For S2, Training error = 0 which may be over-fitting on the smaller data set (1600 samples).
+#Test error around 11% indicating reduced generalization due to fewer training samples.
+#better than MLR (~16.4%) and comparable to LDA (~12.7%) in S2
+#Over-fitting is more pronounced in S2 = needs careful tuning 
+
+#Tuning
+#choose optimum number of rounds to train
+set.seed(1000)
+cv_tune_s1 <- xgb.cv(
+  data = dtrain_s1,
+  nrounds = 1000,
+  nfold = 5,
+  objective = "multi:softmax",
+  num_class = length(unique(y_train_s1)),
+  max_depth = 6,
+  eta = 0.2,
+  subsample = 0.8,
+  colsample_bytree = 1,
+  verbose = 0,
+  early_stopping_rounds = 20
+)
+
+best_nrounds_tune_s1 <- cv_tune_s1$best_iteration
+
+# Train final model
+xgb_tune_s1 <- xgb.train(
+  data = dtrain_s1,
+  nrounds = best_nrounds_tune_s1,
+  objective = "multi:softmax",
+  num_class = length(unique(y_train_s1)),
+  max_depth = 6,
+  eta = 0.2,
+  subsample = 0.8,
+  colsample_bytree = 1,
+  verbose = 0
+)
+
+# Predictions
+pred_trn_tune_s1 <- predict(xgb_tune_s1, dtrain_s1)
+pred_tst_tune_s1  <- predict(xgb_tune_s1, dtest_s1)
+
+# Error rates
+xgb_trn_err_s1 <- mean(pred_trn_tune_s1 != y_train_s1)
+xgb_tst_err_s1  <- mean(pred_tst_tune_s1 != y_test)
+
+cat("S1 - Train Error:", xgb_trn_err_s1, "\n")
+cat("S1 - Test Error:",  xgb_tst_err_s1,  "\n")
+
+
+#choose optimum number of rounds to train
+set.seed(1000)
+cv_tune_s2 <- xgb.cv(
+  data = dtrain_s2,
+  nrounds = 1000,
+  nfold = 5,
+  objective = "multi:softmax",
+  num_class = length(unique(y_train_s2)),
+  max_depth = 4,
+  eta = 0.2,
+  subsample = 0.8,
+  colsample_bytree = 0.9,
+  verbose = 0,
+  early_stopping_rounds = 20
+)
+
+best_nrounds_tune_s2 <- cv_tune_s2$best_iteration
+
+# Train final model
+xgb_tune_s2 <- xgb.train(
+  data = dtrain_s2,
+  nrounds = best_nrounds_tune_s2,
+  objective = "multi:softmax",
+  num_class = length(unique(y_train_s2)),
+  max_depth = 4,
+  eta = 0.2,
+  subsample = 0.8,
+  colsample_bytree = 0.9,
+  verbose = 0
+)
+
+# Predictions
+pred_trn_tune_s2 <- predict(xgb_tune_s2, dtrain_s2)
+pred_tst_tune_s2  <- predict(xgb_tune_s2, dtest_s2)
+
+# Error rates
+xgb_trn_err_s2 <- mean(pred_trn_tune_s2 != y_train_s2)
+xgb_tst_err_s2  <- mean(pred_tst_tune_s2 != y_test)
+
+cat("S2 - Train Error:", xgb_trn_err_s2, "\n")
+cat("S2 - Test Error:",  xgb_tst_err_s2,  "\n")
+
+#on setting number of trees to 6 from 10 and colsample_bytree to 1, test error S1 reduces to 6%
+#on setting number of trees to 6 from 10 and colsample_bytree to 0.8, eta=0.2 test error S2 reduces to 9.7%
+#n_rounds_s1 = 172 which is > n_rounds_s2 (116) -- helps prevent overfitting
+#these may be the best parameters since the number of trees being less for less samples makes sense 
+#can help prevent overfitting
+
+#HDDA
+#using raw data since we HDDA uses dim red
+hdda_s1 <- hdda(train.data.s1, train.target.s1, model = "AKJBKQKD", threshold = 0.05)
+hdda_trn_pred_s1 <- predict(hdda_s1, data = train.data.s1)$class
+hdda_trn_err_s1 <- mean(hdda_trn_pred_s1 != train.target.s1)
+hdda_tst_pred_s1 <- predict(hdda_s1, data = test.data)$class
+hdda_tst_err_s1 <- mean(hdda_tst_pred_s1 != test.target)
+
+hdda_s2 <- hdda(train.data.s2, train.target.s2, model = "AKJBKQKD", threshold = 0.05)
+hdda_trn_pred_s2 <- predict(hdda_s2, data = train.data.s2)$class
+hdda_trn_err_s2 <- mean(hdda_trn_pred_s2 != train.target.s2)
+hdda_tst_pred_s2 <- predict(hdda_s2, data = test.data)$class
+hdda_tst_err_s2 <- mean(hdda_tst_pred_s2 != test.target)
+
+#Training Error of around 6.7% for S1 and 3.9% for S2 indicating good fit to training data.
+#avoids overfitting by using dim reduction at higher dims
+#Test Error around 8.3% for S1 and 8.6% for S2 which shows very good generalization.
+#HDDA still generalizes well showing robustness with small training sets.
+
+results <- data.frame(
+  Models = c("LDA", "QDA", "KNN", "Multinom", "Multinom squared PCs", "XGBoost","XGBoostTuned", "HDDA"),
+  Trn_Error_S1 = c(lda_trn_err_s1, qda_trn_err_s1, knn_trn_err_s1, mlr_trn_err_s1, mlr_sq_trn_err_s1,xgbun_trn_err_s1,xgb_trn_err_s1, hdda_trn_err_s1),
+  Tst_Error_S1 = c(lda_tst_err_s1, qda_tst_err_s1, knn_tst_err_s1, mlr_tst_err_s1, mlr_sq_tst_err_s1,xgbun_tst_err_s1, xgb_tst_err_s1, hdda_tst_err_s1),
+  Trn_Error_S2 = c(lda_trn_err_s2, qda_trn_err_s2, knn_trn_err_s2, mlr_trn_err_s2, mlr_sq_trn_err_s2,xgbun_trn_err_s2, xgb_trn_err_s2, hdda_trn_err_s2),
+  Tst_Error_S2 = c(lda_tst_err_s2, qda_tst_err_s2, knn_tst_err_s2, mlr_tst_err_s2, mlr_sq_tst_err_s2,xgbun_tst_err_s2, xgb_tst_err_s2, hdda_tst_err_s2)
+)
+
+print(results)
+
+library(reshape2)
+library(ggplot2)
+
+res <- melt(results, id.vars = "Models")
+
+ggplot(res, aes(x = Models, y = value, fill = variable)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(y = "Error %", x = "Model", title = "Comparison of Train and Test Errors") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_fill_brewer(palette = "Blues")
+
+#S1
+#Best performing based on test error
+#QDA 
+#XGBoost 
+#KNN  
+
+#Moderate performance: HDDA
+
+#Poor performers:
+#MR & MR squared 
+#LDA
+
+#Non-linear classifiers do better due to their curved decision boundaries 
+
+#S2
+#Top performers
+#QDA 
+#HDDA
+#XGBoost
+
+#Poor performers
+#MR & MR squared 
+#LDA
+#KNN
+
+#With fewer samples, flexible models like XGBoost and KNN overfit more easily.
+#HDDA remains stable, showing robustness to small sample size in high dimensions.
+#QDA is still best due to nonlinear decision boundaries and small data is sufficient for a 4-class problem.
+
+
