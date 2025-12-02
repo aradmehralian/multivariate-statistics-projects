@@ -1,9 +1,9 @@
-library(MASS)      
+library(MASS)
 library(class)
-library(nnet)       
+library(nnet)
 library(xgboost)
 library(HDclassif)
-library(tidyverse)  
+library(tidyverse)
 
 
 load("Data/task1.Rdata")
@@ -13,20 +13,14 @@ load("Data/task1.Rdata")
 ## PCA
 
 # scenario 1
-s1_train_centered <- scale(train.data.s1, center = T, scale = F)
-sum(is.na(s1_train_centered)) # check for missing values
-
-pca_s1 <- prcomp(s1_train_centered)
+pca_s1 <- prcomp(train.data.s1, center = T,scale. = F)
 var_prop_s1 <- cumsum(pca_s1$sdev^2) / sum(pca_s1$sdev^2)
 #number of components which explain 90% variance
 num_comp_s1 <- which(var_prop_s1 >= 0.9)[1]
 cat("Number of PCs for S1:", num_comp_s1, "\n")
 
 # scenario 2
-s2_train_centered <- scale(train.data.s2, center = T, scale = F)
-sum(is.na(s2_train_centered)) # check for missing values
-
-pca_s2 <- prcomp(s2_train_centered)
+pca_s2 <- prcomp(train.data.s2, center = T, scale. = F)
 var_prop_s2 <- cumsum(pca_s2$sdev^2) / sum(pca_s2$sdev^2)
 num_comp_s2 <- which(var_prop_s2 >= 0.9)[1]
 cat("Number of PCs for S2:", num_comp_s2, "\n")
@@ -80,7 +74,6 @@ lda_train_pred_s1 <- predict(lda_s1)$class
 
 # Confusion matrix 
 table(lda_train_pred_s1, train.target.s1)
-
 # Most errors between visually similar letters (D and O), (G and Q)
 
 # Posterior probabilities
@@ -95,6 +88,7 @@ lda_train_err_s1 <- mean(lda_train_pred_s1 != train.target.s1)
 
 # Predictions
 lda_test_pred_s1 <- predict(lda_s1, newdata = test_pc_s1)$class
+table(lda_test_pred_s1, test.target)
 # predictions error
 lda_test_err_s1 <- mean(lda_test_pred_s1 != test.target)
 
@@ -183,22 +177,25 @@ for (i in seq_along(k_vals)) {
 
 # Identify best k based on minimum test error
 best_k_val_s1 <- k_vals[which.min(test_err)]
-cat("Best k:", best_k_val_s1, "Test Error:", min(test_err), "\n")
+cat("Best k for S1:", best_k_val_s1, "Test Error:", min(test_err), "\n")
 cat("Train Error at best k:", round(train_err[which.min(test_err)], 3), "\n")
 
-plot(k_vals, train_err, type="b", col="blue", pch=19, ylim=c(0, max(train_err, test_err)),
+plot(k_vals, train_err, type="b", col="blue", pch=19, 
+     ylim=c(0, max(train_err, test_err)),
      xlab="k value", ylab="Error Rate", main="KNN Errors vs k")
 lines(k_vals, test_err, type="b", col="red", pch=19)
-legend("topright", legend=c("Train","Test"), col=c("blue","red"), pch=10)
+legend("topright", legend=c("Train","Test"), col=c("blue","red"), pch=19)
 
 # Train and test predictions using best k
-train_pred_s1 <- knn(train = train_pc_s1, test = train_pc_s1,
-                     cl = train.target.s1, k = best_k_val_s1)
-test_pred_s1 <- knn(train = train_pc_s1, test = test_pc_s1,
+
+train_pred_knn_s1 <- knn(train = train_pc_s1, test = train_pc_s1,
+                         cl = train.target.s1, k = best_k_val_s1)
+
+test_pred_knn_s1 <- knn(train = train_pc_s1, test = test_pc_s1,
                     cl = train.target.s1, k = best_k_val_s1)
 
-knn_train_err_s1 <- mean(train_pred_s1 != train.target.s1)
-knn_test_err_s1  <- mean(test_pred_s1 != test.target)
+knn_train_err_s1 <- mean(train_pred_knn_s1 != train.target.s1)
+knn_test_err_s1  <- mean(test_pred_knn_s1 != test.target)
 
 cat("Train Error on S1:", round(knn_train_err_s1, 3), "\n")
 cat("Test Error on S1:", round(knn_test_err_s1, 3), "\n")
@@ -225,13 +222,14 @@ for (i in seq_along(k_vals)) {
 
 # Identify best k based on minimum test error
 best_k_val_s2 <- k_vals[which.min(test_err)]
-cat("Best k:", best_k_val_s2, "Test Error:", min(test_err), "\n")
+cat("Best k for S2:", best_k_val_s2, "Test Error:", min(test_err), "\n")
 cat("Train Error at best k:", round(train_err[which.min(test_err)], 3), "\n")
 
-plot(k_vals, train_err, type="b", col="blue", pch=19, ylim=c(0, max(train_err, test_err)),
+plot(k_vals, train_err, type="b", col="blue", pch=19,
+     ylim=c(0,max(train_err, test_err)),
      xlab="k value", ylab="Error Rate", main="KNN Errors vs k")
 lines(k_vals, test_err, type="b", col="red", pch=19)
-legend("topright", legend=c("Train","Test"), col=c("blue","red"), pch=10)
+legend("topright", legend=c("Train","Test"), col=c("blue","red"), pch=19)
 
 
 train_pred_s2 <- knn(train = train_pc_s2, test = train_pc_s2,
@@ -330,7 +328,7 @@ mul_sq_s1 <- multinom(
     data = train_pc_s1_sq,
     family = multinomial,
     maxit = 1000,
-    hess = TRUE
+    hess = T
 )
 train_pred_sq_s1 <- predict(mul_sq_s1, newdata = train_pc_s1_sq)
 test_pred_sq_s1 <- predict(mul_sq_s1, newdata = test_pc_s1_sq)
@@ -344,7 +342,7 @@ mul_sq_s2 <- multinom(
   data = train_pc_s2_sq,
   family = multinomial,
   maxit = 1000,
-  hess = TRUE
+  hess = T
 )
 train_pred_sq_s2 <- predict(mul_sq_s2, newdata = train_pc_s2_sq)
 test_pred_sq_s2 <- predict(mul_sq_s2, newdata = test_pc_s2_sq)
@@ -422,7 +420,9 @@ cat("Best nrounds for S1:", best_nrounds_s1)
 xgb_s1 <- xgb.train(
   params = params_s1,
   data = dtrain_s1,
-  nrounds = best_nrounds_s1
+  nrounds = best_nrounds_s1,
+  subsample = 0.8,
+  callsample_bytree = 0.9
 )
 
 train_pred_xgb_s1 <- predict(xgb_s1, dtrain_s1)
@@ -468,7 +468,9 @@ cat("Best nrounds forS2:", best_nrounds_s2)
 xgb_s2 <- xgb.train(
   params  = params_s2,
   data    = dtrain_s2,
-  nrounds = best_nrounds_s2
+  nrounds = best_nrounds_s2,
+  subsample = 0.8,
+  callsample_bytree = 0.9
 )
 
 train_pred_xgb_s2 <- predict(xgb_s2, dtrain_s2)
@@ -488,6 +490,7 @@ cat("XGBoost Test Error on S2:",  round(xgb_test_err_s2, 3))
 # our train data is centered. so we also have to center our test data.
 # no need to use the principal components, since HDDA does its own dimension reduction
 
+s1_train_centered <- scale(train.data.s1, center = T, scale = F)
 train_means_s1 <- colMeans(train.data.s1)
 test_centered_s1 <- scale(test.data, center = train_means_s1, scale = F)
 
@@ -514,6 +517,7 @@ cat("HDDA Test Error on S1:",  round(hdda_test_err_s1, 3))
 # no sign of overfitting, train and test error rates are close and below %10
 
 # scenario 2
+s2_train_centered <- scale(train.data.s2, center = T, scale = F)
 train_means_s2 <- colMeans(train.data.s2)
 test_centered_s2 <- scale(test.data, center = train_means_s2, scale = F)
 
@@ -580,3 +584,4 @@ print(results)
 
 # plotting the error rates
 # Take over Michele
+
