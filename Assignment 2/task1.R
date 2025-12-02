@@ -8,13 +8,13 @@ library(tidyverse)
 load("task1.Rdata")
 
 #S1 PCA
-pca_s1 <- prcomp(train.data.s1, center = TRUE, scale. = FALSE)
+pca_s1 <- prcomp(train.data.s1, center = TRUE, scale = FALSE)
 var_s1 <- cumsum(pca_s1$sdev^2) / sum(pca_s1$sdev^2)
 no_comp_s1 <- which(var_s1 >= 0.9)[1]  #number of components which explain 90% variance
 cat("S1: Number of PCs ", no_comp_s1, "\n")
 
 #S2 PCA
-pca_s2 <- prcomp(train.data.s2, center = TRUE, scale. = FALSE)
+pca_s2 <- prcomp(train.data.s2, center = TRUE, scale = FALSE)
 var_s2 <- cumsum(pca_s2$sdev^2) / sum(pca_s2$sdev^2)
 no_comp_s2 <- which(var_s2 >= 0.9)[1]
 cat("S2: Number of PCs ", no_comp_s2, "\n")
@@ -74,6 +74,8 @@ lda_trn_err_s1 <- mean(lda_trn_pred_s1 != train.target.s1)
 # Predictons
 lda_tst_pred_s1 <- predict(lda_s1, newdata = test.pc.s1)$class
 lda_tst_err_s1 <- mean(lda_tst_pred_s1 != test.target)
+
+table(lda_tst_pred_s1, test.target)
 
 cat("S1 - LDA Training Error ", lda_trn_err_s1, "\n")
 cat("S1 - LDA Test Error ", lda_tst_err_s1, "\n")
@@ -154,12 +156,6 @@ for (i in seq_along(k_vals)) {
   test_err[i] <- mean(test_pred != test.target)
 }
 
-# Identify best k based on minimum test error
-best_k_val_s1 <- k_vals[which.min(test_err)]
-cat("Best k ", best_k_val_s1, "Test Error:", min(test_err), "\n") 
-#can't pick 1 -- pick from the graph instead
-cat("Train Error at best k:", train_err[which.min(test_err)], "\n")
-
 plot(k_vals, train_err, type="b", col="blue", pch=19, ylim=c(0, max(train_err, test_err)),
      xlab="k value", ylab="Error Rate", main="KNN Errors vs k")
 lines(k_vals, test_err, type="b", col="red", pch=19)
@@ -197,11 +193,6 @@ for (i in seq_along(k_vals)) {
   test_err[i] <- mean(test_pred != test.target)
 }
 
-# Identify best k based on minimum test error
-best_k_val_s2 <- k_vals[which.min(test_err)]
-cat("Best k ", best_k_val_s2, "Test Error:", min(test_err), "\n")
-cat("Train Error at best k:", train_err[which.min(test_err)], "\n")
-
 plot(k_vals, train_err, type="b", col="blue", pch=19, ylim=c(0, max(train_err, test_err)),
      xlab="k value", ylab="Error Rate", main="KNN Errors vs k")
 lines(k_vals, test_err, type="b", col="red", pch=19)
@@ -209,9 +200,9 @@ legend("topright", legend=c("Train","Test"), col=c("blue","red"), pch=10)
 
 
 train_pred_s2 <- knn(train = train.pc.s2, test = train.pc.s2,
-                     cl = train.target.s2, k = best_k_val_s2)
+                     cl = train.target.s2, k = 3)
 test_pred_s2 <- knn(train = train.pc.s2, test = test.pc.s2,
-                    cl = train.target.s2, k = best_k_val_s2)
+                    cl = train.target.s2, k = 3)
 
 knn_trn_err_s2 <- mean(train_pred_s2 != train.target.s2)
 knn_tst_err_s2  <- mean(test_pred_s2 != test.target)
@@ -531,7 +522,7 @@ cat("S2 - Train Error:", xgb_trn_err_s2, "\n")
 cat("S2 - Test Error:",  xgb_tst_err_s2,  "\n")
 
 #on setting number of trees to 6 from 10 and colsample_bytree to 1, test error S1 reduces to 6%
-#on setting number of trees to 6 from 10 and colsample_bytree to 0.8, eta=0.2 test error S2 reduces to 9.7%
+#on setting number of trees to 4 from 10 and colsample_bytree to 0.8, eta=0.2 test error S2 reduces to 9.7%
 #n_rounds_s1 = 172 which is > n_rounds_s2 (116) -- helps prevent overfitting
 #these may be the best parameters since the number of trees being less for less samples makes sense 
 #can help prevent overfitting
