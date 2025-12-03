@@ -583,5 +583,26 @@ results <- data.frame(
 print(results)
 
 # plotting the error rates
-# Take over Michele
 
+results_long <-results %>%
+  pivot_longer(
+    cols = c("Train_Error", "Test_Error"),
+    names_to = "Error_Type",
+    values_to = "Error_Value"
+  )
+
+results_long$Error_Type <- factor(results_long$Error_Type, 
+                                  levels = c("Train_Error", "Test_Error"))
+
+ggplot(results_long, aes(x = Model, y = Error_Value, fill = Scenario)) +
+  geom_bar(stat="identity", position = "dodge") +
+  facet_wrap(~Error_Type) +
+  labs(
+    title = "Overview of model performance",
+    y = "Error Rate",
+    x = "Method"
+  ) +
+  theme_bw()+
+  theme(axis.text.x = element_text(hjust = 1, angle = 45),
+        legend.position = "top") +
+  scale_fill_manual(name = "", values = c("#52BDEC", "#00407A"))
