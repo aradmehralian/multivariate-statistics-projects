@@ -208,7 +208,7 @@ print(round(final_centers, 2))
 
 ## part c
 
-unfolding_results <- unfolding(beer, type = "ordinal", conditionality = "row")
+# unfolding_results <- unfolding(beer, type = "ordinal", conditionality = "row")
 # the stress value indicates that how well our data fits into 2-d space
 # generally it should be below 0.2, but here because the data is about people's 
 # preferences, and it's a subjective matter, it is hard to properly map it to 2-d

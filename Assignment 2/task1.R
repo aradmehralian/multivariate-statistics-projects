@@ -4,6 +4,7 @@ library(nnet)
 library(xgboost)
 library(HDclassif)
 library(tidyverse)
+library(heplots)
 
 
 load("Data/task1.Rdata")
@@ -113,6 +114,21 @@ cat("LDA Test Error on S2:", round(lda_test_err_s2, 3), "\n")
 # mild over fitting, particularly in S2 due to smaller training set
 # linear separation works fairly well but cannot capture complex boundaries
 
+# we can use the Box's M test to determine whether the covariance matrices
+# are equal or not. LDA assumes that the covariance matrix is equal for all groups,
+# but if this condition is not satisfied we use other models (particularly QDA)
+
+# Box's M test for Scenario 1
+box_m_s1 <- boxM(train_pc_s1, train.target.s1)
+print(box_m_s1)
+
+# Box's M test for Scenario 2
+box_m_s2 <- boxM(train_pc_s2, train.target.s2)
+print(box_m_s2)
+
+# based on the obtained p-values, we can justify the use of QDA, because the covariance
+# matrix of different groups is not equal
+
 ## QDA
 
 # scenario 1
@@ -156,7 +172,7 @@ cat("QDA Test Error on S2:", round(qda_test_err_s2, 3), "\n")
 
 # scenario 1
 # Range of k for hyper tuning
-k_vals <- seq(1, 50)  
+k_vals <- seq(1, 20)  
 num_k <- length(k_vals)
 
 train_err <- numeric(num_k)
@@ -187,9 +203,11 @@ lines(k_vals, test_err, type="b", col="red", pch=19)
 legend("topright", legend=c("Train","Test"), col=c("blue","red"), pch=19)
 
 # Train and test predictions using best k
+# since the best k-val for S1 is 1, we can look at the plot to choose the value of k
+# according to the plot, choosing 3 is acceptable
 
 train_pred_knn_s1 <- knn(train = train_pc_s1, test = train_pc_s1,
-                         cl = train.target.s1, k = best_k_val_s1)
+                         cl = train.target.s1, k = 3)
 
 test_pred_knn_s1 <- knn(train = train_pc_s1, test = test_pc_s1,
                     cl = train.target.s1, k = best_k_val_s1)
@@ -201,7 +219,7 @@ cat("Train Error on S1:", round(knn_train_err_s1, 3), "\n")
 cat("Test Error on S1:", round(knn_test_err_s1, 3), "\n")
 
 # scenario 2
-k_vals <- seq(1, 50)  
+k_vals <- seq(1, 20)  
 num_k <- length(k_vals)
 
 train_err <- numeric(num_k)
@@ -252,7 +270,7 @@ mul_s1 <- multinom(
   data = as.data.frame(train_pc_s1),
   family = multinomial,
   maxit = 1000,
-  hess = TRUE
+  hess = T
 )
 
 train_pred_s1 <- predict(mul_s1, newdata = as.data.frame(train_pc_s1))
@@ -270,7 +288,7 @@ mul_s2 <- multinom(
   data = as.data.frame(train_pc_s2),
   family = multinomial,
   maxit = 1000,
-  hess = TRUE
+  hess = T
 )
 train_pred_s2 <- predict(mul_s2, newdata = as.data.frame(train_pc_s2))
 test_pred_s2 <- predict(mul_s2, newdata = as.data.frame(test_pc_s2))
@@ -421,8 +439,7 @@ xgb_s1 <- xgb.train(
   params = params_s1,
   data = dtrain_s1,
   nrounds = best_nrounds_s1,
-  subsample = 0.8,
-  callsample_bytree = 0.9
+  subsample = 0.8
 )
 
 train_pred_xgb_s1 <- predict(xgb_s1, dtrain_s1)
@@ -469,8 +486,7 @@ xgb_s2 <- xgb.train(
   params  = params_s2,
   data    = dtrain_s2,
   nrounds = best_nrounds_s2,
-  subsample = 0.8,
-  callsample_bytree = 0.9
+  subsample = 0.8
 )
 
 train_pred_xgb_s2 <- predict(xgb_s2, dtrain_s2)
