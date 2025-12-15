@@ -38,6 +38,24 @@ plot(var_prop_s2, type = "b", pch = 15,
      main = "Cumulative Variance (S2)")
 abline(h = 0.9, col = "blue", lty = 2, lwd = 2)  # 90% threshold
 
+expl_var <- data.frame(pc_index = 1:784,
+                       cum_var_s1 = var_prop_s1,
+                       cum_var_s2 = var_prop_s2)
+
+ggplot(expl_var, aes(x = pc_index, y = cum_var_s1)) + 
+  geom_line(alpha = 0.8) + 
+  geom_point(alpha = 0.5) + 
+  geom_hline(yintercept = 0.9, colour = "#00407A", lty = 2) + 
+  scale_x_continuous(breaks = seq(0, 800, by = 50)) + 
+  theme_bw() + 
+  theme(panel.grid.minor.x = element_blank()) + 
+  labs(x = "Number of PC", y = "% Explained Variance",
+       title = "Percentage of Explained Variance per Number of PC in Scenario 1") + 
+  annotate("text", x = 600, y = 0.80, vjust = 1,
+           label = "90% threshold", col = "#00407A") + 
+  annotate("curve", x = 680, y = 0.775, xend = 725, yend = 0.88, 
+           arrow = arrow(length = unit(0.2, "cm")), col = "#00407A")
+
 # Project training and test data onto selected PCs
 train_pc_s1 <- pca_s1$x[, 1:num_comp_s1]
 train_pc_s2 <- pca_s2$x[, 1:num_comp_s2]
@@ -128,6 +146,83 @@ print(box_m_s2)
 
 # based on the obtained p-values, we can justify the use of QDA, because the covariance
 # matrix of different groups is not equal
+
+# Normality assumption scenario 1: 11 Good, 24 Decent, 32 Bad
+par(mfrow = c(4, 4), mar = c(0.5, 0.5, 0.5, 0.5), oma = c(0, 0, 0, 0))
+for(i in 1:16){
+  qqnorm(train_pc_s1[, i])
+  qqline(train_pc_s1[, i])
+} 
+# Good: 4
+# Decent: 6
+# Bad: 5
+for(i in 17:32){
+  qqnorm(train_pc_s1[, i])
+  qqline(train_pc_s1[, i])
+}
+# Good: 6
+# Decent: 7
+# Bad: 3
+for(i in 33:48){
+  qqnorm(train_pc_s1[, i])
+  qqline(train_pc_s1[, i])
+}
+# Good: 1
+# Decent: 7
+# Bad: 8
+for(i in 49:64){
+  qqnorm(train_pc_s1[, i])
+  qqline(train_pc_s1[, i])
+}
+# Good: 0
+# Decent: 4
+# Bad: 12
+par(mfrow = c(2, 2))
+for(i in 65:69){
+  qqnorm(train_pc_s1[, i])
+  qqline(train_pc_s1[, i])
+}
+# Good: 0
+# Decent: 0
+# Bad: 4
+
+# Normality assumption scenario 2: 13 Good, 27 Decent, 25 Bad
+par(mfrow = c(4, 4))
+for(i in 1:16){
+  qqnorm(train_pc_s2[, i])
+  qqline(train_pc_s2[, i])
+} 
+# Good: 5
+# Decent: 7
+# Bad: 4
+for(i in 17:32){
+  qqnorm(train_pc_s2[, i])
+  qqline(train_pc_s2[, i])
+}
+# Good: 7
+# Decent: 9
+# Bad: 0
+for(i in 33:48){
+  qqnorm(train_pc_s2[, i])
+  qqline(train_pc_s2[, i])
+}
+# Good: 1
+# Decent: 5
+# Bad: 10
+for(i in 49:64){
+  qqnorm(train_pc_s2[, i])
+  qqline(train_pc_s2[, i])
+}
+# Good: 0
+# Decent: 6
+# Bad: 10
+par(mfrow = c(1, 1), oma = c(0, 0, 0, 0), mar = c(5.1, 4.1, 4.1, 2.1))
+qqnorm(train_pc_s1[, i])
+qqline(train_pc_s1[, i]) # Bad 
+
+# However, we should fully trust the boxM() result, since
+# almost half of the principal component do not satisfy the
+# normality assumption
 
 ## QDA
 
