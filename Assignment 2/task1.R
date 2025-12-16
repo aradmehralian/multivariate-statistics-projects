@@ -56,6 +56,20 @@ ggplot(expl_var, aes(x = pc_index, y = cum_var_s1)) +
   annotate("curve", x = 680, y = 0.775, xend = 725, yend = 0.88, 
            arrow = arrow(length = unit(0.2, "cm")), col = "#00407A")
 
+ggplot(expl_var, aes(x = pc_index, y = cum_var_s2)) + 
+  geom_line(alpha = 0.8) + 
+  geom_point(alpha = 0.5) + 
+  geom_hline(yintercept = 0.9, colour = "#00407A", lty = 2) + 
+  scale_x_continuous(breaks = seq(0, 800, by = 50)) + 
+  theme_bw() + 
+  theme(panel.grid.minor.x = element_blank()) + 
+  labs(x = "Number of PC", y = "% Explained Variance",
+       title = "Percentage of Explained Variance per Number of PC in Scenario 2") + 
+  annotate("text", x = 600, y = 0.80, vjust = 1,
+           label = "90% threshold", col = "#00407A") + 
+  annotate("curve", x = 680, y = 0.775, xend = 725, yend = 0.88, 
+           arrow = arrow(length = unit(0.2, "cm")), col = "#00407A")
+
 # Project training and test data onto selected PCs
 train_pc_s1 <- pca_s1$x[, 1:num_comp_s1]
 train_pc_s2 <- pca_s2$x[, 1:num_comp_s2]
