@@ -21,6 +21,7 @@ plot(
   sub = "",
   hang = -1
 )
+rect.hclust(hc_beer, k = 3, border = 2:4)
 
 ## part b
 
