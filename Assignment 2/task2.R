@@ -63,10 +63,7 @@ hc_valid_1 <- hclust(dist_valid_1, method = "ward.D2")
 valid_independent_hc_1 <- cutree(hc_valid_1, k = num_cluster_1)
 
 ari_hc_1 <- adjustedRandIndex(valid_pred_hc_1, valid_independent_hc_1)
-cat("Stability (ARI) - Hierarchical Method with k =",
-    num_cluster_1,
-    ":",
-    round(ari_hc_1, 3))
+cat("Stability (ARI) - Hierarchical Method with k =", num_cluster_1, ":", round(ari_hc_1, 3))
 
 # with 4 clusters
 dist_train_2 <- dist(beer_train, method = "euclidean")
@@ -84,10 +81,7 @@ hc_valid_2 <- hclust(dist_valid_2, method = "ward.D2")
 valid_independent_hc_2 <- cutree(hc_valid_2, k = num_cluster_2)
 
 ari_hc_2 <- adjustedRandIndex(valid_pred_hc_2, valid_independent_hc_2)
-cat("Stability (ARI) - Hierarchical Method with k =",
-    num_cluster_2,
-    ":",
-    round(ari_hc_2, 3))
+cat("Stability (ARI) - Hierarchical Method with k =", num_cluster_2, ":", round(ari_hc_2, 3))
 
 # method 2: k-means
 # with 3 clusters
@@ -104,10 +98,7 @@ kmeans_valid_1 <- kmeans(beer_valid, centers = num_cluster_1, nstart = 100)
 valid_independent_kmeans_1 <- kmeans_valid_1$cluster
 
 ari_kmeans_1 <- adjustedRandIndex(valid_pred_kmeans_1, valid_independent_kmeans_1)
-cat("Stability (ARI) - K-Means with k =",
-    num_cluster_1,
-    ":",
-    round(ari_kmeans_1, 3))
+cat("Stability (ARI) - K-Means with k =", num_cluster_1, ":", round(ari_kmeans_1, 3))
 
 # with 4 clusters
 set.seed(10)
@@ -123,10 +114,7 @@ kmeans_valid_2 <- kmeans(beer_valid, centers = num_cluster_2, nstart = 100)
 valid_independent_kmeans_2 <- kmeans_valid_2$cluster
 
 ari_kmeans_2 <- adjustedRandIndex(valid_pred_kmeans_2, valid_independent_kmeans_2)
-cat("Stability (ARI) - K-Means with k =",
-    num_cluster_2,
-    ":",
-    round(ari_kmeans_2, 3))
+cat("Stability (ARI) - K-Means with k =", num_cluster_2, ":", round(ari_kmeans_2, 3))
 
 # method 3: hierarchical followed by k-means
 # with 3 clusters
@@ -147,10 +135,7 @@ hc_kmeans_valid_1 <- kmeans(beer_valid, centers = start_centers_valid_1, iter.ma
 valid_independent_1 <- hc_kmeans_valid_1$cluster
 
 ari_hc_kmeans_1 <- adjustedRandIndex(valid_pred_1, valid_independent_1)
-cat("Stability (ARI) - Hierarchical + K-Means Method with k =",
-    num_cluster_1,
-    ":",
-    round(ari_hc_kmeans_1, 3))
+cat("Stability (ARI) - Hierarchical + K-Means Method with k =", num_cluster_1, ":", round(ari_hc_kmeans_1, 3))
 
 # with 4 clusters
 start_centers_train_2 <- as.matrix(aggregate(beer_train, by = list(train_groups_2),
@@ -169,10 +154,7 @@ hc_kmeans_valid_2 <- kmeans(beer_valid, centers = start_centers_valid_2, iter.ma
 valid_independent_2 <- hc_kmeans_valid_2$cluster
 
 ari_hc_kmeans_2 <- adjustedRandIndex(valid_pred_2, valid_independent_2)
-cat("Stability (ARI) - Hierarchical + K-Means Method with k =",
-    num_cluster_2,
-    ":",
-    round(ari_hc_kmeans_2, 3))
+cat("Stability (ARI) - Hierarchical + K-Means Method with k =", num_cluster_2, ":", round(ari_hc_kmeans_2, 3))
 
 # comparing the results
 ari_scores <- c(
@@ -184,11 +166,11 @@ ari_scores <- c(
   ari_hc_kmeans_2  # Hierarchical + K-Means (k=4)
 )
 
-methods <- rep(c("Hierarchical", "Hierarchical", 
-             "K-Means", "K-Means", 
-             "Hierarchical + K-Means", "Hierarchical + K-Means"), by = 2)
+methods <- rep(c("Hierarchical", 
+             "K-Means", 
+             "Hierarchical + K-Means"), each = 2)
 
-num_clusters <- rep(c(3, 4), by = 3)
+num_clusters <- rep(c(3, 4), each = 3)
 
 results <- data.frame(
   Method = methods,
@@ -215,7 +197,8 @@ unfolding_results <- unfolding(beer, type = "ordinal", conditionality = "row")
 # the stress value indicates that how well our data fits into 2-d space
 # generally it should be below 0.2, but here because the data is about people's 
 # preferences, and it's a subjective matter, it is hard to properly map it to 2-d
-# space. This is why the stress value is a bit high (0.33)
+# space. This is why the stress value is a bit high (0.34
+
 cat("Stress-1 value:", round(unfolding_results$stress, 4))
 
 
