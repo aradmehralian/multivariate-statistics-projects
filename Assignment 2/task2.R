@@ -1,5 +1,7 @@
 library(mclust)
 library(smacof)
+library(ggplot2)
+library(ggrepel)
 
 load("Data/beer.Rdata")
 head(beer)
@@ -208,7 +210,7 @@ print(round(final_centers, 2))
 
 ## part c
 
-# unfolding_results <- unfolding(beer, type = "ordinal", conditionality = "row")
+unfolding_results <- unfolding(beer, type = "ordinal", conditionality = "row")
 # the stress value indicates that how well our data fits into 2-d space
 # generally it should be below 0.2, but here because the data is about people's 
 # preferences, and it's a subjective matter, it is hard to properly map it to 2-d
@@ -216,7 +218,49 @@ print(round(final_centers, 2))
 cat("Stress-1 value:", round(unfolding_results$stress, 4))
 
 
-# create a plot for the final clustering solution
-# Michele and Lucas really like this part
-cluster_colors <- c("red", "green", "blue")
-person_colors <- cluster_colors[final_clusters]
+## plot of final clustering
+
+# coordinates for People
+df_people <- as.data.frame(unfolding_results$conf.row)
+colnames(df_people) <- c("Dim1", "Dim2")
+df_people$Cluster <- as.factor(final_clusters)
+
+# coordinates for Beers
+df_beers <- as.data.frame(unfolding_results$conf.col)
+colnames(df_beers) <- c("Dim1", "Dim2")
+df_beers$Label <- rownames(df_beers)
+
+# calculate cluster centroids
+cluster_means_2d <- aggregate(cbind(Dim1, Dim2) ~ Cluster, data = df_people, FUN = mean)
+
+ggplot() +
+  # confidence Ellipses
+  stat_ellipse(data = df_people, aes(x = Dim1, y = Dim2, color = Cluster, fill = Cluster), 
+               geom = "polygon", alpha = 0.15, level = 0.90) + # 90% confidence region
+  
+  # people's location
+  geom_point(data = df_people, aes(x = Dim1, y = Dim2, color = Cluster), 
+             alpha = 0.3, size = 1.5) + 
+  
+  # cluster's centroids
+  geom_point(data = cluster_means_2d, aes(x = Dim1, y = Dim2, color = Cluster), 
+             size = 6, shape = 16) +
+  
+  # beer labels
+  geom_label_repel(data = df_beers, aes(x = Dim1, y = Dim2, label = Label),
+                   fill = "white", color = "black", fontface = "bold",
+                   box.padding = 0.5, point.padding = 0.2, segment.color = "grey50") +
+  
+  # beer's location
+  geom_point(data = df_beers, aes(x = Dim1, y = Dim2), 
+             color = "black", shape = 18, size = 3) +
+  
+  scale_color_manual(values = c("#E41A1C", "#377EB8", "#4DAF4A")) +
+  scale_fill_manual(values = c("#E41A1C", "#377EB8", "#4DAF4A")) +
+  theme_bw(base_size = 14) +
+  labs(title = "Row-Conditional Unfolding on Beer Rankings Divided by Clusters",
+       x = "Dimension 1",
+       y = "Dimension 2",
+       color = "Cluster") +
+  theme(legend.position = "top",
+        panel.grid.minor = element_blank())
