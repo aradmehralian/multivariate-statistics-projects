@@ -114,7 +114,6 @@ lda_train_post_s1 <- predict(lda_s1)$posterior
 
 # most rows showcase high confidence predictions meaning LDA works decently
 # most low confidence predictions between visually similar letters 
-# for example row 135 D and Q.
 
 # training error
 lda_train_err_s1 <- mean(lda_train_pred_s1 != train.target.s1)
@@ -272,8 +271,6 @@ qda_test_err_s2 <- mean(qda_test_pred_s2 != test.target)
 cat("QDA Training Error on S2:", round(qda_train_err_s2, 3), "\n")
 cat("QDA Test Error on S2:", round(qda_test_err_s2, 3), "\n")
 
-# low training error - much lower than LDA around 4.6% for S1 and 2.6% for S2
-# lower test error than LDA as well at 5.8% for S1 and 6.8% for S2
 # QDA fits the data with more flexibility thanks to the quadratic decision boundaries, 
 # and generalizes better. QDA outperforms LDA 
 
@@ -411,10 +408,6 @@ cat("Test Error on S2:", round(mlr_test_err_s2, 3), "\n")
 # maybe the relationship between principal components and labels is non-linear
 # and MLR is linear in the log-odds.
 
-# with a smaller training set, training error decreases to around 5.2%
-# but test error increases to 16.7%
-# probable under-fitting making the model too simple for the complex decision boundaries
-
 
 ## squaring terms
 
@@ -499,17 +492,6 @@ cat("S2: K-1 classes =", nrow(para_s2),
     " Training samples =", n_sam_s2, "\n")
 
 
-
-# MLR on PCs alone had:
-#  S1 → Train 17%, Test 18.8%   vs 23.8% and 24.3% Squared
-#  S2 → Train 12.4%, Test 18.4% vs 22.5% and 27.3% Squared
-
-# Adding squared PCs increased both training and test errors significantly maybe because of overparameterization?
-# S1-417 variables for only 9600 samples
-# S2-393 variables for 1600 samples 
-# slight overfitting and poor generalization due to too many correlated predictors/ unstable 
-# smaller training set suffers more
-
 ## gradient boosting
 
 # gradient boosting requires the labels to be in numeric form and zero-indexed.
@@ -560,8 +542,6 @@ xgb_test_err_s1 <- mean(test_pred_xgb_s1 != test_lab_num)
 cat("XGBoost Train Error on S1:", round(xgb_train_err_s1, 3), "\n")
 cat("XGBoost Test Error on S1:",  round(xgb_test_err_s1, 3))
 
-# there is a huge difference between train and test errors. possible overfitting
-# maybe tweak the parameters to stop overfitting?
 
 # scenario 2
 train_lab_num_s2 <- as.numeric(train.target.s2) - 1

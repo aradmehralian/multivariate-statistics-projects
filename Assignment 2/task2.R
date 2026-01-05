@@ -197,7 +197,7 @@ unfolding_results <- unfolding(beer, type = "ordinal", conditionality = "row")
 # the stress value indicates that how well our data fits into 2-d space
 # generally it should be below 0.2, but here because the data is about people's 
 # preferences, and it's a subjective matter, it is hard to properly map it to 2-d
-# space. This is why the stress value is a bit high (0.34
+# space. This is why the stress value is a bit high (0.34)
 
 cat("Stress-1 value:", round(unfolding_results$stress, 4))
 
